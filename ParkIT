@@ -23,7 +23,6 @@ def check_availability():
     messagebox.showinfo("Parking Availability", message)
 
 # Login function
-# Login function
 def login(users_dict, username, password):
     # Check if username and password match
     if username in users_dict and users_dict[username] == password:
