@@ -1,0 +1,138 @@
+from tkinter import *
+from tkinter import messagebox
+
+# User credentials dictionary
+users = {"user1": "password1", "user2": "password2"}
+admins = {"admin1": "password1", "admin2": "password2"}
+
+# Check availability function
+
+def book_slot():
+    messagebox.showinfo("Book Your Slot", "Your slot has been booked!")
+
+def check_availability():
+    # Use IoT sensors to check for available parking slots
+    available_slots = 10  # Replace with actual code to check for available slots
+    booked_slots = 20  # Replace with actual code to check for booked slots
+
+    # Update available slots label
+    available_slots_label.config(text=f"Available Slots: {available_slots}, Booked Slots: {booked_slots}")
+
+    # Display result in a message box
+    message = f"Available Slots: {available_slots}\nBooked Slots: {booked_slots}"
+    messagebox.showinfo("Parking Availability", message)
+
+# Login function
+# Login function
+def login(users_dict, username, password):
+    # Check if username and password match
+    if username in users_dict and users_dict[username] == password:
+        messagebox.showinfo("Login Successful", "Login successful!")
+        return True
+    else:
+        messagebox.showerror("Login Failed", "Invalid username or password.")
+        return False
+
+
+def user_login():
+    login_window = Toplevel()
+    login_window.title("User Login")
+
+    # Create username label and entry
+    username_label = Label(login_window, text="Username:")
+    username_label.pack()
+
+    username_entry = Entry(login_window)
+    username_entry.pack()
+
+    # Create password label and entry
+    password_label = Label(login_window, text="Password:")
+    password_label.pack()
+
+    password_entry = Entry(login_window, show="*")
+    password_entry.pack()
+
+    # Create login button
+    login_button = Button(login_window, text="Login", command=lambda: handle_login(users, username_entry.get(), password_entry.get(), login_window))
+    login_button.pack()
+
+def handle_login(users_dict, username, password, login_window):
+    # Check if username and password match
+    if login(users_dict, username, password):
+        # Create new button for booking a slot
+        book_slot_button = Button(login_window, text="Book Your Slot", command=book_slot)
+        book_slot_button.pack()
+
+
+def admin_login():
+    login_window = Toplevel()
+    login_window.title("Admin Login")
+
+    # Create username label and entry
+    username_label = Label(login_window, text="Username:")
+    username_label.pack()
+
+    username_entry = Entry(login_window)
+    username_entry.pack()
+
+    # Create password label and entry
+    password_label = Label(login_window, text="Password:")
+    password_label.pack()
+
+    password_entry = Entry(login_window, show="*")
+    password_entry.pack()
+
+    # Create login button
+    login_button = Button(login_window, text="Login", command=lambda: login(admins, username_entry.get(), password_entry.get()))
+    login_button.pack()
+
+root = Tk()
+root.title("Parking Management System")
+root.configure(background='black')
+
+label = Label(root, text="Welcome to the Parking Management System!", bg='black', fg='green')
+label.pack()
+
+user_button = Button(root, text="User Login", fg='black', bg='green', command=user_login)
+user_button.pack(pady=10)
+
+admin_button = Button(root, text="Admin Login", fg='black', bg='green', command=admin_login)
+admin_button.pack(pady=10)
+
+
+# Create available slots label
+available_slots_label = Label(root, text="Available Slots: 0, Booked Slots: 0", bg='white', fg='black')
+available_slots_label.pack(pady=10)
+
+availability_button = Button(root, text="Check Availability", fg='black', bg='black', command=check_availability)
+availability_button.pack(pady=10)
+
+root.mainloop()
+import sqlite3
+import datetime
+
+# Connect to the database (create a new one if it doesn't exist)
+conn = sqlite3.connect('smart_parking.db')
+
+# Define the function for inserting sensor readings
+def insert_sensor_reading(spot_id, occupied):
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    conn.execute('INSERT INTO sensor_readings (spot_id, timestamp, occupied) VALUES (?, ?, ?)', (spot_id, timestamp, occupied))
+    conn.commit()
+
+# Get the user input for the parking spot and occupancy
+spot = input('Enter the parking spot ID: ')
+occupied = int(input('Enter the occupancy status (0 or 1): '))
+
+# Check if the parking spot exists
+spot_exists = conn.execute('SELECT COUNT(*) FROM parking_spots WHERE location = ?', (spot,)).fetchone()[0] > 0
+
+if spot_exists:
+    # Insert the sensor reading
+    insert_sensor_reading(spot, occupied)
+    print('Sensor reading inserted successfully.')
+else:
+    print('Invalid parking spot ID.')
+
+# Close the connection
+conn.close()
