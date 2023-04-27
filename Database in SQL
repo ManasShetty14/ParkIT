@@ -1,0 +1,61 @@
+import sqlite3
+import datetime
+
+# Connect to the database (create a new one if it doesn't exist)
+conn = sqlite3.connect('smart_parking.db')
+
+# Create a table for parking spots
+conn.execute('''
+    CREATE TABLE IF NOT EXISTS parking_spots (
+        id INTEGER PRIMARY KEY,
+        location TEXT,
+        occupied INTEGER DEFAULT 0
+    )
+''')
+
+# Create a table for sensor readings
+conn.execute('''
+    CREATE TABLE IF NOT EXISTS sensor_readings (
+        id INTEGER PRIMARY KEY,
+        spot_id INTEGER,
+        timestamp TEXT,
+        occupied INTEGER,
+        FOREIGN KEY (spot_id) REFERENCES parking_spots(id)
+    )
+''')
+
+# Insert some sample data for parking spots
+spots = [
+    ('A1', 0),
+    ('A2', 0),
+    ('A3', 0),
+    ('B1', 0),
+    ('B2', 0),
+    ('B3', 0),
+    ('C1', 0),
+    ('C2', 0),
+    ('C3', 0),
+]
+conn.executemany('INSERT INTO parking_spots (location, occupied) VALUES (?, ?)', spots)
+
+# Generate some random sensor readings for the past week
+start_date = datetime.date.today() - datetime.timedelta(days=7)
+sensor_readings = []
+for i in range(10000):
+    spot_id = i % 9 + 1
+    timestamp = start_date + datetime.timedelta(minutes=i)
+    occupied = 1 if i % 10 == 0 else 0
+    sensor_readings.append((spot_id, timestamp.isoformat(), occupied))
+conn.executemany('INSERT INTO sensor_readings (spot_id, timestamp, occupied) VALUES (?, ?, ?)', sensor_readings)
+
+# Commit the changes
+conn.commit()
+
+# Display the sensor_readings table
+cursor = conn.execute('SELECT * FROM sensor_readings')
+print('Sensor Readings:')
+for row in cursor:
+    print(f'ID: {row[0]}, Spot ID: {row[1]}, Timestamp: {row[2]}, Occupied: {row[3]}')
+
+# Close the connection
+conn.close()
